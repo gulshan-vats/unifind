@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { Resend } from "resend"
 import { otpStore } from "@/lib/store"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
-
 export async function POST(request: NextRequest) {
     try {
         const { name, email, password } = await request.json()
+
+        // Initialize Resend inside the handler to avoid build-time errors
+        const resend = new Resend(process.env.RESEND_API_KEY || "re_dummy")
 
         // Validate email
         if (!email || !email.includes("@")) {
