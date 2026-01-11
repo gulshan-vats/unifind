@@ -5,13 +5,14 @@ export default auth((req) => {
     const isLoggedIn = !!req.auth
     const { nextUrl } = req
 
-    // If trying to access dashboard and not logged in, redirect to login
-    if (nextUrl.pathname.startsWith("/dashboard") && !isLoggedIn) {
+    const isDashboardRoute = nextUrl.pathname.startsWith("/dashboard")
+    const isAuthRoute = nextUrl.pathname === "/login" || nextUrl.pathname === "/signup"
+
+    if (isDashboardRoute && !isLoggedIn) {
         return NextResponse.redirect(new URL("/login", nextUrl))
     }
 
-    // If logged in and trying to access login/signup, redirect to dashboard
-    if (isLoggedIn && (nextUrl.pathname === "/login" || nextUrl.pathname === "/signup")) {
+    if (isAuthRoute && isLoggedIn) {
         return NextResponse.redirect(new URL("/dashboard", nextUrl))
     }
 
