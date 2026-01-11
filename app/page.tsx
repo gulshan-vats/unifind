@@ -1,4 +1,9 @@
 import Image from "next/image";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Welcome to Unifind",
+};
 
 export default function Home() {
   return (

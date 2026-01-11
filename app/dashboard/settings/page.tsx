@@ -11,13 +11,15 @@ import {
     Globe,
     Moon,
     Sun,
-    Check
+    Check,
+    X
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
+import { Badge } from "@/components/ui/badge"
 import {
     Card,
     CardContent,
@@ -75,6 +77,8 @@ export default function SettingsPage() {
     const [isOtpDialogOpen, setIsOtpDialogOpen] = React.useState(false)
     const [otpValue, setOtpValue] = React.useState("")
     const [isVerifyingOtp, setIsVerifyingOtp] = React.useState(false)
+    const [skillInput, setSkillInput] = React.useState("")
+    const [interestInput, setInterestInput] = React.useState("")
 
     React.useEffect(() => {
         setLocalProfile(userProfile)
@@ -165,6 +169,46 @@ export default function SettingsPage() {
         }
     }
 
+    const addSkill = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter" && skillInput.trim()) {
+            e.preventDefault()
+            if (!localProfile.skills.includes(skillInput.trim())) {
+                setLocalProfile({
+                    ...localProfile,
+                    skills: [...localProfile.skills, skillInput.trim()]
+                })
+            }
+            setSkillInput("")
+        }
+    }
+
+    const removeSkill = (skill: string) => {
+        setLocalProfile({
+            ...localProfile,
+            skills: localProfile.skills.filter(s => s !== skill)
+        })
+    }
+
+    const addInterest = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter" && interestInput.trim()) {
+            e.preventDefault()
+            if (!localProfile.interests.includes(interestInput.trim())) {
+                setLocalProfile({
+                    ...localProfile,
+                    interests: [...localProfile.interests, interestInput.trim()]
+                })
+            }
+            setInterestInput("")
+        }
+    }
+
+    const removeInterest = (interest: string) => {
+        setLocalProfile({
+            ...localProfile,
+            interests: localProfile.interests.filter(i => i !== interest)
+        })
+    }
+
     const fileInputRef = React.useRef<HTMLInputElement>(null)
 
     const handleAvatarClick = () => {
@@ -246,13 +290,195 @@ export default function SettingsPage() {
                         </div>
                     </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="location">Location</Label>
+                            <Input
+                                id="location"
+                                value={localProfile.location}
+                                onChange={(e) => setLocalProfile({ ...localProfile, location: e.target.value })}
+                                placeholder="San Francisco, CA"
+                                className="bg-muted/10 border-none rounded-xl focus-visible:ring-blue-500/20"
+                            />
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
                         <Label htmlFor="bio">Bio</Label>
                         <textarea
                             id="bio"
+                            value={localProfile.bio}
+                            onChange={(e) => setLocalProfile({ ...localProfile, bio: e.target.value })}
                             className="flex min-h-[100px] w-full rounded-xl border-none bg-muted/10 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             placeholder="Tell us a little bit about yourself"
                         />
+                    </div>
+
+                    <Separator className="my-8" />
+
+                    <div className="space-y-4">
+                        <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Education</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="university">University</Label>
+                                <Input
+                                    id="university"
+                                    value={localProfile.education?.university || ""}
+                                    onChange={(e) => setLocalProfile({
+                                        ...localProfile,
+                                        education: { ...(localProfile.education || {}), university: e.target.value }
+                                    })}
+                                    placeholder="University of Technology"
+                                    className="bg-muted/10 border-none rounded-xl focus-visible:ring-blue-500/20"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="degree">Degree</Label>
+                                <Input
+                                    id="degree"
+                                    value={localProfile.education?.degree || ""}
+                                    onChange={(e) => setLocalProfile({
+                                        ...localProfile,
+                                        education: { ...(localProfile.education || {}), degree: e.target.value }
+                                    })}
+                                    placeholder="BS in Computer Science"
+                                    className="bg-muted/10 border-none rounded-xl focus-visible:ring-blue-500/20"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="years">Years</Label>
+                                <Input
+                                    id="years"
+                                    value={localProfile.education?.years || ""}
+                                    onChange={(e) => setLocalProfile({
+                                        ...localProfile,
+                                        education: { ...(localProfile.education || {}), years: e.target.value }
+                                    })}
+                                    placeholder="2022 - 2026"
+                                    className="bg-muted/10 border-none rounded-xl focus-visible:ring-blue-500/20"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="gpa">GPA</Label>
+                                <Input
+                                    id="gpa"
+                                    value={localProfile.education?.gpa || ""}
+                                    onChange={(e) => setLocalProfile({
+                                        ...localProfile,
+                                        education: { ...(localProfile.education || {}), gpa: e.target.value }
+                                    })}
+                                    placeholder="9.0/10.0"
+                                    className="bg-muted/10 border-none rounded-xl focus-visible:ring-blue-500/20"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <Separator className="my-8" />
+
+                    <div className="space-y-4">
+                        <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Skills & Interests</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <Label htmlFor="skills">Skills (Press Enter to add)</Label>
+                                <Input
+                                    id="skills"
+                                    value={skillInput}
+                                    onChange={(e) => setSkillInput(e.target.value)}
+                                    onKeyDown={addSkill}
+                                    placeholder="Add a skill..."
+                                    className="bg-muted/10 border-none rounded-xl focus-visible:ring-blue-500/20"
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                    {localProfile.skills.map(skill => (
+                                        <Badge key={skill} variant="secondary" className="rounded-full pl-3 pr-1 py-1 flex items-center gap-1 bg-blue-500/10 text-blue-600 border-none">
+                                            {skill}
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="size-4 rounded-full hover:bg-blue-500/20 p-0"
+                                                onClick={() => removeSkill(skill)}
+                                            >
+                                                <X className="size-3" />
+                                            </Button>
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <Label htmlFor="interests">Interests (Press Enter to add)</Label>
+                                <Input
+                                    id="interests"
+                                    value={interestInput}
+                                    onChange={(e) => setInterestInput(e.target.value)}
+                                    onKeyDown={addInterest}
+                                    placeholder="Add an interest..."
+                                    className="bg-muted/10 border-none rounded-xl focus-visible:ring-blue-500/20"
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                    {localProfile.interests.map(interest => (
+                                        <Badge key={interest} variant="outline" className="rounded-full pl-3 pr-1 py-1 flex items-center gap-1 border-border/50">
+                                            {interest}
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="size-4 rounded-full hover:bg-muted p-0"
+                                                onClick={() => removeInterest(interest)}
+                                            >
+                                                <X className="size-3" />
+                                            </Button>
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <Separator className="my-8" />
+
+                    <div className="space-y-4">
+                        <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Social Links</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="linkedin">LinkedIn URL</Label>
+                                <Input
+                                    id="linkedin"
+                                    value={localProfile.socials.linkedin}
+                                    onChange={(e) => setLocalProfile({
+                                        ...localProfile,
+                                        socials: { ...localProfile.socials, linkedin: e.target.value }
+                                    })}
+                                    placeholder="https://linkedin.com/in/..."
+                                    className="bg-muted/10 border-none rounded-xl focus-visible:ring-blue-500/20"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="github">GitHub URL</Label>
+                                <Input
+                                    id="github"
+                                    value={localProfile.socials.github}
+                                    onChange={(e) => setLocalProfile({
+                                        ...localProfile,
+                                        socials: { ...localProfile.socials, github: e.target.value }
+                                    })}
+                                    placeholder="https://github.com/..."
+                                    className="bg-muted/10 border-none rounded-xl focus-visible:ring-blue-500/20"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="twitter">Twitter URL</Label>
+                                <Input
+                                    id="twitter"
+                                    value={localProfile.socials.twitter}
+                                    onChange={(e) => setLocalProfile({
+                                        ...localProfile,
+                                        socials: { ...localProfile.socials, twitter: e.target.value }
+                                    })}
+                                    placeholder="https://twitter.com/..."
+                                    className="bg-muted/10 border-none rounded-xl focus-visible:ring-blue-500/20"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 

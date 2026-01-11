@@ -23,6 +23,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import NextLink from "next/link"
 
 import { signOut } from "next-auth/react"
 import { useData } from "@/context/data-context"
@@ -49,27 +50,21 @@ export function UserNav() {
                         </p>
                     </div>
                 </DropdownMenuLabel>
+
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Upgrade to Pro
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                        <BadgeCheck className="mr-2 h-4 w-4" />
-                        Account
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        Billing
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        <Bell className="mr-2 h-4 w-4" />
-                        Notifications
-                    </DropdownMenuItem>
+                    <NextLink href="/dashboard/profile" passHref>
+                        <DropdownMenuItem className="cursor-pointer">
+                            <BadgeCheck className="mr-2 h-4 w-4" />
+                            Account
+                        </DropdownMenuItem>
+                    </NextLink>
+                    <NextLink href="/dashboard/notifications" passHref>
+                        <DropdownMenuItem className="cursor-pointer">
+                            <Bell className="mr-2 h-4 w-4" />
+                            Notifications
+                        </DropdownMenuItem>
+                    </NextLink>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()}>

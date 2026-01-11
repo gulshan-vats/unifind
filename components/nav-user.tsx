@@ -29,6 +29,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import NextLink from "next/link"
 
 export function NavUser({
   user,
@@ -79,27 +80,21 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
+
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
+              <NextLink href="/dashboard/profile" passHref>
+                <DropdownMenuItem className="cursor-pointer">
+                  <BadgeCheck />
+                  Account
+                </DropdownMenuItem>
+              </NextLink>
+              <NextLink href="/dashboard/notifications" passHref>
+                <DropdownMenuItem className="cursor-pointer">
+                  <Bell />
+                  Notifications
+                </DropdownMenuItem>
+              </NextLink>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
