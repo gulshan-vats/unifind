@@ -96,7 +96,7 @@ const data = {
     },
     {
       title: "Help",
-      url: "#",
+      url: "/dashboard/help",
       icon: MessageCircleQuestion,
     },
   ],

@@ -226,9 +226,13 @@ export default function InternshipsPage() {
                                                 {item.title}
                                             </TableCell>
                                             <TableCell className="py-3">
-                                                <Badge variant="outline" className="font-normal rounded-md truncate max-w-[120px]" title={item.location || "Not specified"}>
-                                                    {item.location || "Not specified"}
-                                                </Badge>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {(item.location || "Not specified").split(/[/,&]|\band\b/i).map((loc, i) => (
+                                                        <Badge key={i} variant="outline" className="font-normal rounded-md px-3 truncate max-w-[120px]" title={loc.trim()}>
+                                                            {loc.trim()}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
                                             </TableCell>
                                             <TableCell className="py-3">
                                                 <div className="flex flex-col gap-1">
