@@ -14,11 +14,21 @@ import {
   Briefcase,
   Trophy,
   FileText,
+  Star,
+  MessageSquare,
+  MoreHorizontal,
+  Trash2,
 } from "lucide-react"
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 import NextLink from "next/link"
 import { usePathname } from "next/navigation"
-import { NavFavorites } from "@/components/nav-favorites"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { useChat } from "@/context/chat-context"
@@ -26,7 +36,13 @@ import { Button } from "@/components/ui/button"
 import {
   Sidebar,
   SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuAction,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
@@ -89,8 +105,12 @@ const data = {
 export function SidebarLeft({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
-  const { setActiveSessionId } = useChat()
+  const { setActiveSessionId, sessions, activeSessionId, toggleSessionFavorite, deleteSession } = useChat()
   const pathname = usePathname()
+
+  const favorites = React.useMemo(() => {
+    return sessions.filter(s => s.isFavorite)
+  }, [sessions])
 
   const navMainWithActive = data.navMain.map((item) => ({
     ...item,
@@ -101,32 +121,117 @@ export function SidebarLeft({
   return (
     <Sidebar collapsible="icon" className="border-r-0" {...props}>
       <SidebarHeader>
-        <div className="flex h-14 items-center justify-between px-1 pb-[10px] group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!pb-[10px]">
-          <div className="group-data-[collapsible=icon]:hidden flex items-center gap-2 px-1.5">
-            <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-5 items-center justify-center rounded-md">
-              <Command className="size-3" />
+        <div className="flex h-14 items-center justify-between px-2 group-data-[collapsible=icon]:justify-center">
+          <div className="group-data-[collapsible=icon]:hidden flex items-center gap-2 px-1">
+            <div className="flex aspect-square size-5 items-center justify-center rounded-md overflow-hidden">
+              <img src="/logo.png" alt="Unifind Logo" className="size-full object-cover" />
             </div>
             <span className="truncate font-medium">Unifind</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <NextLink href="/dashboard" passHref>
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-7 group-data-[collapsible=icon]:hidden"
+                className="size-8 group-data-[collapsible=icon]:hidden"
                 onClick={() => setActiveSessionId(null)}
                 title="New Chat"
               >
                 <Plus className="size-4" />
               </Button>
             </NextLink>
-            <SidebarTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 size-7" />
+            <SidebarTrigger className="size-8 [&>svg]:size-4" />
           </div>
         </div>
         <NavMain items={navMainWithActive} />
       </SidebarHeader>
       <SidebarContent>
-        <NavFavorites />
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel>Favorites</SidebarGroupLabel>
+          <SidebarMenu>
+            {favorites.length > 0 ? (
+              favorites.map((fav) => (
+                <SidebarMenuItem key={fav.id}>
+                  <SidebarMenuButton asChild isActive={fav.id === activeSessionId}>
+                    <NextLink href={`/dashboard/chat/${fav.id}`}>
+                      <Star className="mr-2 size-3 fill-yellow-500 text-yellow-500" />
+                      <span className="truncate">{fav.title}</span>
+                    </NextLink>
+                  </SidebarMenuButton>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuAction showOnHover>
+                        <MoreHorizontal className="size-3" />
+                        <span className="sr-only">More</span>
+                      </SidebarMenuAction>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-48" align="start" side="right">
+                      <DropdownMenuItem
+                        onClick={() => toggleSessionFavorite(fav.id)}
+                        className="cursor-pointer"
+                      >
+                        <Star className="mr-2 size-4 fill-yellow-500 text-yellow-500" />
+                        <span>Unfavorite</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => deleteSession(fav.id)}
+                        className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                      >
+                        <Trash2 className="mr-2 size-4" />
+                        <span>Delete Chat</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              ))
+            ) : (
+              <div className="px-2 text-xs text-muted-foreground">No favorites yet</div>
+            )}
+          </SidebarMenu>
+        </SidebarGroup>
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
+          <SidebarMenu>
+            {sessions.filter(s => !s.isFavorite).length > 0 ? (
+              sessions.filter(s => !s.isFavorite).slice(0, 5).map((session) => (
+                <SidebarMenuItem key={session.id}>
+                  <SidebarMenuButton asChild isActive={session.id === activeSessionId}>
+                    <NextLink href={`/dashboard/chat/${session.id}`}>
+                      <MessageSquare className="mr-2 size-3" />
+                      <span className="truncate">{session.title}</span>
+                    </NextLink>
+                  </SidebarMenuButton>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuAction showOnHover>
+                        <MoreHorizontal className="size-3" />
+                        <span className="sr-only">More</span>
+                      </SidebarMenuAction>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-48" align="start" side="right">
+                      <DropdownMenuItem
+                        onClick={() => toggleSessionFavorite(session.id)}
+                        className="cursor-pointer"
+                      >
+                        <Star className="mr-2 size-4" />
+                        <span>Favorite</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => deleteSession(session.id)}
+                        className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                      >
+                        <Trash2 className="mr-2 size-4" />
+                        <span>Delete Chat</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              ))
+            ) : (
+              <div className="px-2 text-xs text-muted-foreground">No recent chats</div>
+            )}
+          </SidebarMenu>
+        </SidebarGroup>
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarRail />

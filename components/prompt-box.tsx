@@ -21,7 +21,64 @@ export function PromptBox({ onSubmit, isLoading, hasMessages }: PromptBoxProps) 
     const [inputValue, setInputValue] = React.useState("")
     const [isWebSearch, setIsWebSearch] = React.useState(false)
     const [files, setFiles] = React.useState<File[]>([])
+    const [prompts, setPrompts] = React.useState<string[]>([])
     const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+    const [isListening, setIsListening] = React.useState(false)
+
+    React.useEffect(() => {
+        const studentPrompts = [
+            "Summarize this article",
+            "Help me study for exams",
+            "Plan my study schedule",
+            "Find scholarships for me",
+            "Explain this concept",
+            "Write a study guide",
+            "Find internships",
+            "Debug my code",
+            "Suggest research topics",
+            "Proofread my essay"
+        ]
+        setPrompts(studentPrompts.sort(() => 0.5 - Math.random()).slice(0, 4))
+    }, [])
+
+    const toggleListening = () => {
+        if (isListening) {
+            setIsListening(false)
+            return
+        }
+
+        if (!("webkitSpeechRecognition" in window)) {
+            alert("Speech recognition is not supported in this browser.")
+            return
+        }
+
+        const recognition = new (window as any).webkitSpeechRecognition()
+        recognition.continuous = false
+        recognition.interimResults = false
+        recognition.lang = "en-US"
+
+        recognition.onstart = () => {
+            setIsListening(true)
+        }
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript
+            setInputValue((prev) => prev + (prev ? " " : "") + transcript)
+            setIsListening(false)
+        }
+
+        recognition.onerror = (event: any) => {
+            console.error("Speech recognition error", event.error)
+            setIsListening(false)
+        }
+
+        recognition.onend = () => {
+            setIsListening(false)
+        }
+
+        recognition.start()
+    }
 
     const handleSendMessage = () => {
         if (!inputValue.trim() && files.length === 0) return
@@ -50,9 +107,9 @@ export function PromptBox({ onSubmit, isLoading, hasMessages }: PromptBoxProps) 
     return (
         <div className={cn(
             "w-full transition-all duration-500 ease-in-out z-10 shrink-0",
-            hasMessages ? "p-4" : "relative mt-4 p-4 pt-2"
+            hasMessages ? "p-9" : "relative mt-4 p-9 pt-2"
         )}>
-            <div className="relative flex flex-col w-full bg-background/80 backdrop-blur-xl rounded-3xl border border-input/50 focus-within:border-ring/50 focus-within:ring-1 focus-within:ring-ring/50 transition-all shadow-sm hover:shadow-md">
+            <div className="relative flex flex-col w-full bg-background/80 backdrop-blur-xl rounded-3xl border border-blue-500/30 focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/20 transition-all animate-glow">
 
                 {files.length > 0 && (
                     <div className="flex gap-2 p-4 pb-0 overflow-x-auto scrollbar-hide">
@@ -121,8 +178,16 @@ export function PromptBox({ onSubmit, isLoading, hasMessages }: PromptBoxProps) 
                                 <TooltipContent>Web Search</TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
-                        <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-foreground">
-                            <Mic className="size-5" />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                                "rounded-full transition-colors",
+                                isListening ? "text-red-500 bg-red-50 hover:bg-red-100 animate-pulse" : "text-muted-foreground hover:text-foreground"
+                            )}
+                            onClick={toggleListening}
+                        >
+                            {isListening ? <Mic className="size-5 fill-current" /> : <Mic className="size-5" />}
                         </Button>
                         <Button
                             size="icon"
@@ -137,7 +202,7 @@ export function PromptBox({ onSubmit, isLoading, hasMessages }: PromptBoxProps) 
             </div>
             {!hasMessages && (
                 <div className="mt-4 flex flex-wrap gap-2 justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 fill-mode-backwards">
-                    {["Summarize this article", "Help me study", "Plan my schedule", "Find scholarships"].map((suggestion) => (
+                    {prompts.map((suggestion) => (
                         <Button
                             key={suggestion}
                             variant="outline"

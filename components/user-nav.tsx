@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 
+import { signOut } from "next-auth/react"
 import { useData } from "@/context/data-context"
 
 export function UserNav() {
@@ -35,7 +36,7 @@ export function UserNav() {
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
                         <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback>CN</AvatarFallback>
+                        <AvatarFallback>{user.name ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "U"}</AvatarFallback>
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>
@@ -71,7 +72,7 @@ export function UserNav() {
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => signOut()}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Log out
                 </DropdownMenuItem>

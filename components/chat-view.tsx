@@ -4,8 +4,16 @@ import * as React from "react"
 import { ChatList } from "@/components/chat-list"
 import { PromptBox } from "@/components/prompt-box"
 import { cn } from "@/lib/utils"
+import { Star, MoreVertical, Trash2 } from "lucide-react"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { useParams, useRouter } from "next/navigation"
 import { useChat, Message } from "@/context/chat-context"
+import { useData } from "@/context/data-context"
 
 export function ChatView() {
     const params = useParams()
@@ -17,24 +25,35 @@ export function ChatView() {
         activeSessionId,
         createSession,
         addMessageToSession,
-        setActiveSessionId
+        setActiveSessionId,
+        isLoading,
+        setIsLoading,
+        toggleSessionFavorite,
+        deleteSession
     } = useChat()
+    const { userProfile } = useData()
 
-    const [isLoading, setIsLoading] = React.useState(false)
+    const getGreeting = () => {
+        const hour = new Date().getHours()
+        if (hour < 12) return "Good Morning"
+        if (hour < 18) return "Good Afternoon"
+        return "Good Evening"
+    }
 
     // Sync URL with Context
     React.useEffect(() => {
         if (sessionId && sessionId !== activeSessionId) {
             setActiveSessionId(sessionId)
-        } else if (!sessionId && activeSessionId) {
+        } else if (!sessionId && activeSessionId && !isLoading) {
             setActiveSessionId(null)
         }
-    }, [sessionId, activeSessionId, setActiveSessionId])
+    }, [sessionId, activeSessionId, setActiveSessionId, isLoading])
 
     const activeSession = sessions.find(s => s.id === activeSessionId)
     const messages = activeSession?.messages || []
 
     const handleSendMessage = async (content: string, isWebSearch: boolean, files: File[]) => {
+        setIsLoading(true)
         let currentSessionId = sessionId
 
         if (!currentSessionId) {
@@ -51,7 +70,6 @@ export function ChatView() {
         if (currentSessionId) {
             addMessageToSession(currentSessionId, userMessage)
         }
-        setIsLoading(true)
 
         try {
             // Convert files to base64
@@ -116,7 +134,7 @@ export function ChatView() {
             {!hasMessages && (
                 <div className="text-center space-y-2 mb-8 animate-in fade-in zoom-in duration-500 px-4">
                     <h1 className="text-4xl font-medium bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-                        Hello, Student
+                        {getGreeting()}, {userProfile?.name?.split(" ")[0] || "Student"}
                     </h1>
                     <p className="text-xl text-muted-foreground">
                         How can I help you today?
@@ -125,7 +143,9 @@ export function ChatView() {
             )}
 
             {hasMessages && (
-                <ChatList messages={messages} isLoading={isLoading} />
+                <>
+                    <ChatList messages={messages} isLoading={isLoading} />
+                </>
             )}
 
             <PromptBox

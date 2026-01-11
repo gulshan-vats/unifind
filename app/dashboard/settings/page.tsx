@@ -57,6 +57,12 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
+import {
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSeparator,
+    InputOTPSlot,
+} from "@/components/ui/input-otp"
 
 export default function SettingsPage() {
     const { userProfile, setUserProfile, resetData } = useData()
@@ -66,12 +72,45 @@ export default function SettingsPage() {
     const [localProfile, setLocalProfile] = React.useState(userProfile)
     const [deleteConfirm, setDeleteConfirm] = React.useState("")
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
+    const [isOtpDialogOpen, setIsOtpDialogOpen] = React.useState(false)
+    const [otpValue, setOtpValue] = React.useState("")
+    const [isVerifyingOtp, setIsVerifyingOtp] = React.useState(false)
 
     React.useEffect(() => {
         setLocalProfile(userProfile)
     }, [userProfile])
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        // Check if email changed
+        if (localProfile.email !== userProfile.email) {
+            setIsSaving(true)
+            try {
+                const response = await fetch("/api/auth/send-otp", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        name: localProfile.name,
+                        email: localProfile.email,
+                        password: "dummy-password-for-verification" // send-otp expects a password
+                    }),
+                })
+
+                if (!response.ok) {
+                    throw new Error("Failed to send verification code")
+                }
+
+                setIsOtpDialogOpen(true)
+                toast.info("Verification code sent", {
+                    description: `A code has been sent to ${localProfile.email}`
+                })
+            } catch (error: any) {
+                toast.error("Error", { description: error.message })
+            } finally {
+                setIsSaving(false)
+            }
+            return
+        }
+
         setIsSaving(true)
         setTimeout(() => {
             setUserProfile(localProfile)
@@ -80,6 +119,38 @@ export default function SettingsPage() {
             toast.success("Settings updated successfully")
             setTimeout(() => setSaved(false), 2000)
         }, 1000)
+    }
+
+    const handleVerifyOtp = async () => {
+        setIsVerifyingOtp(true)
+        try {
+            const response = await fetch("/api/auth/verify-email-change", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: localProfile.email,
+                    otp: otpValue
+                }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.message || "Verification failed")
+            }
+
+            // Success! Update profile
+            setUserProfile(localProfile)
+            setIsOtpDialogOpen(false)
+            setSaved(true)
+            toast.success("Email verified and settings updated")
+            setTimeout(() => setSaved(false), 2000)
+        } catch (error: any) {
+            toast.error("Verification failed", { description: error.message })
+        } finally {
+            setIsVerifyingOtp(false)
+            setOtpValue("")
+        }
     }
 
     const handleDeleteAccount = () => {
@@ -378,6 +449,49 @@ export default function SettingsPage() {
                         </Dialog>
                     </div>
                 </div>
+
+                {/* OTP Verification Dialog */}
+                <Dialog open={isOtpDialogOpen} onOpenChange={setIsOtpDialogOpen}>
+                    <DialogContent className="rounded-2xl border-none shadow-2xl sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Verify your new email</DialogTitle>
+                            <DialogDescription>
+                                We've sent a 6-digit code to <span className="font-medium text-foreground">{localProfile.email}</span>.
+                                Please enter it below to confirm the change.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col items-center justify-center py-6 space-y-4">
+                            <InputOTP
+                                maxLength={6}
+                                value={otpValue}
+                                onChange={setOtpValue}
+                                containerClassName="gap-2"
+                            >
+                                <InputOTPGroup className="gap-2">
+                                    <InputOTPSlot index={0} className="rounded-md border h-12 w-10" />
+                                    <InputOTPSlot index={1} className="rounded-md border h-12 w-10" />
+                                    <InputOTPSlot index={2} className="rounded-md border h-12 w-10" />
+                                </InputOTPGroup>
+                                <InputOTPSeparator />
+                                <InputOTPGroup className="gap-2">
+                                    <InputOTPSlot index={3} className="rounded-md border h-12 w-10" />
+                                    <InputOTPSlot index={4} className="rounded-md border h-12 w-10" />
+                                    <InputOTPSlot index={5} className="rounded-md border h-12 w-10" />
+                                </InputOTPGroup>
+                            </InputOTP>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="ghost" onClick={() => setIsOtpDialogOpen(false)} className="rounded-md">Cancel</Button>
+                            <Button
+                                onClick={handleVerifyOtp}
+                                disabled={isVerifyingOtp || otpValue.length !== 6}
+                                className="bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-none"
+                            >
+                                {isVerifyingOtp ? "Verifying..." : "Confirm Change"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 {/* Global Save Button */}
                 <div className="flex justify-end pt-8 border-t border-muted/20">

@@ -13,6 +13,7 @@ export interface ChatSession {
     title: string
     messages: Message[]
     createdAt: number
+    isFavorite?: boolean
 }
 
 interface ChatContextType {
@@ -23,6 +24,10 @@ interface ChatContextType {
     addMessageToSession: (sessionId: string, message: Message) => void
     deleteSession: (id: string) => void
     updateSessionTitle: (id: string, title: string) => void
+    isLoading: boolean
+    setIsLoading: (loading: boolean) => void
+    deleteMessage: (sessionId: string, messageId: string) => void
+    toggleSessionFavorite: (sessionId: string) => void
 }
 
 const ChatContext = React.createContext<ChatContextType | undefined>(undefined)
@@ -30,6 +35,7 @@ const ChatContext = React.createContext<ChatContextType | undefined>(undefined)
 export function ChatProvider({ children }: { children: React.ReactNode }) {
     const [sessions, setSessions] = React.useState<ChatSession[]>([])
     const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
+    const [isLoading, setIsLoading] = React.useState(false)
     const isLoaded = React.useRef(false)
 
     // Load from localStorage on mount
@@ -60,6 +66,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             title: firstMessage.slice(0, 40) + (firstMessage.length > 40 ? "..." : ""),
             messages: [],
             createdAt: Date.now(),
+            isFavorite: false,
         }
         setSessions((prev) => [newSession, ...prev])
         setActiveSessionId(id)
@@ -89,6 +96,26 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         )
     }
 
+    const deleteMessage = (sessionId: string, messageId: string) => {
+        setSessions((prev) =>
+            prev.map((s) =>
+                s.id === sessionId
+                    ? { ...s, messages: s.messages.filter((m) => m.id !== messageId) }
+                    : s
+            )
+        )
+    }
+
+    const toggleSessionFavorite = (sessionId: string) => {
+        setSessions((prev) =>
+            prev.map((s) =>
+                s.id === sessionId
+                    ? { ...s, isFavorite: !s.isFavorite }
+                    : s
+            )
+        )
+    }
+
     return (
         <ChatContext.Provider
             value={{
@@ -99,6 +126,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 addMessageToSession,
                 deleteSession,
                 updateSessionTitle,
+                isLoading,
+                setIsLoading,
+                deleteMessage,
+                toggleSessionFavorite,
             }}
         >
             {children}

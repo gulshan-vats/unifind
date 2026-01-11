@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useSession } from "next-auth/react"
 
 interface Internship {
     title: string
@@ -54,25 +55,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     })
     const [isLoaded, setIsLoaded] = React.useState(false)
 
-    // Load from localStorage on mount
+    const { data: session } = useSession()
+
+    // Sync user profile with session
     React.useEffect(() => {
-        const savedProfile = localStorage.getItem("unifind_user_profile")
-        if (savedProfile) {
-            try {
-                setUserProfile(JSON.parse(savedProfile))
-            } catch (e) {
-                console.error("Failed to parse saved profile", e)
-            }
+        if (session?.user) {
+            setUserProfile({
+                name: session.user.name || "User",
+                email: session.user.email || "",
+                avatar: session.user.image || "",
+            })
         }
+    }, [session])
+
+    // Load from localStorage on mount (only for other data)
+    React.useEffect(() => {
         setIsLoaded(true)
     }, [])
 
-    // Save to localStorage on change, but only after initial load
-    React.useEffect(() => {
-        if (isLoaded) {
-            localStorage.setItem("unifind_user_profile", JSON.stringify(userProfile))
-        }
-    }, [userProfile, isLoaded])
 
     const resetData = () => {
         localStorage.removeItem("unifind_user_profile")

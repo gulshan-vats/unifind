@@ -34,7 +34,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                     ) : (
                         <code
                             className={cn(
-                                "bg-muted px-1.5 py-0.5 rounded-md font-mono text-sm text-foreground",
+                                "bg-muted px-1.5 py-0.5 rounded-md font-mono text-sm text-foreground break-all",
                                 className
                             )}
                             {...props}
@@ -45,7 +45,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                 },
                 table({ children }) {
                     return (
-                        <div className="my-4 w-full overflow-y-auto rounded-lg border">
+                        <div className="my-4 w-full overflow-x-auto rounded-lg border">
                             <Table>{children}</Table>
                         </div>
                     )
