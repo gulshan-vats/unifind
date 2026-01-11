@@ -1,18 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { Resend } from "resend"
+import { otpStore } from "@/lib/store"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Use global singleton to persist OTP store across hot reloads
-declare global {
-    var otpStore: Map<string, { code: string; expires: number; data: any }> | undefined
-}
-
-export const otpStore = globalThis.otpStore ?? new Map<string, { code: string; expires: number; data: any }>()
-
-if (process.env.NODE_ENV !== "production") {
-    globalThis.otpStore = otpStore
-}
 
 export async function POST(request: NextRequest) {
     try {

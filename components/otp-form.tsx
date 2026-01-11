@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Command } from "lucide-react"
+import { signIn } from "next-auth/react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -42,24 +43,23 @@ export function OTPForm({ className, ...props }: React.ComponentProps<"div">) {
 
       const { email } = JSON.parse(signupData)
 
-      const response = await fetch("/api/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
+      const result = await signIn("credentials", {
+        email,
+        otp,
+        redirect: false,
       })
 
-      if (response.ok) {
+      if (result?.error) {
+        setError(result.error)
+        toast.error("Verification failed", {
+          description: result.error
+        })
+      } else {
         sessionStorage.removeItem("signupData")
         toast.success("Email verified!", {
-          description: "Your account has been created successfully."
+          description: "You have been logged in successfully."
         })
         router.push("/dashboard")
-      } else {
-        const error = await response.json()
-        setError(error.message || "Invalid verification code")
-        toast.error("Verification failed", {
-          description: error.message || "Please check your code and try again."
-        })
       }
     } catch (error) {
       setError("An error occurred. Please try again.")
