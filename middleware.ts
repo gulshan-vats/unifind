@@ -7,6 +7,14 @@ export default auth((req) => {
 
     const isDashboardRoute = nextUrl.pathname.startsWith("/dashboard")
     const isAuthRoute = nextUrl.pathname === "/login" || nextUrl.pathname === "/signup"
+    const isRootRoute = nextUrl.pathname === "/"
+
+    if (isRootRoute) {
+        if (isLoggedIn) {
+            return NextResponse.redirect(new URL("/dashboard", nextUrl))
+        }
+        return NextResponse.redirect(new URL("/login", nextUrl))
+    }
 
     if (isDashboardRoute && !isLoggedIn) {
         return NextResponse.redirect(new URL("/login", nextUrl))
@@ -20,5 +28,5 @@ export default auth((req) => {
 })
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/login", "/signup"],
+    matcher: ["/", "/dashboard/:path*", "/login", "/signup"],
 }
